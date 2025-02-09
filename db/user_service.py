@@ -30,19 +30,18 @@ def get_exact_user_db(user_id):
 
 
 # Функция для сохранения ответа пользователя
-def user_answer_db(user_id, q_id, user_answer, level):
+def user_answer_db(user_id, q_id, user_answer):
     db = next(get_db())
+
     exact_question = db.query(Question).filter_by(id=q_id).first()
     if exact_question:
         if exact_question.correct_answer == user_answer:
             correctness = True
         else:
             correctness = False
-
-        new_user_answer = UserAnswer(user_id=user_id,
-                                     question_id=q_id,
-                                     answer=user_answer,
-                                     level=level,
+        user = get_exact_user_db(user_id)
+        new_user_answer = UserAnswer(user_id=user_id, question_id=q_id,
+                                     answer=user_answer, level=user.level,
                                      correctness=correctness)
         db.add(new_user_answer)
         db.commit()
@@ -52,8 +51,11 @@ def user_answer_db(user_id, q_id, user_answer, level):
                 user_result.correct_answers += 1
                 db.commit()
                 return True
-            return False
-
+            else:
+                new_result = Result(user_id=user_id, level=user.level, correct_answers=1)
+                db.add(new_result)
+                db.commit()
+                return True
     return False
 
 
